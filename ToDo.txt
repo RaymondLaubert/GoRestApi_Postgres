@@ -1,0 +1,9 @@
+Go REST API with Postgres To Do:
+
+	- Create a Login and Signup Page
+		- Signup Adds User to Database
+		- Login Authenticates Current Users
+		
+	- Add Functionality to Sign Out
+		
+	- Create Persistent To Do List for Users
