@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/RaymondLaubert/GoApi_Postgres/pkg/database"
+	"github.com/RaymondLaubert/GoRestApi_Postgres/pkg/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -18,7 +18,7 @@ func main() {
 	// Attempt to Establish a Connection with the PostgresDB
 	dbConn, err := database.EstablishDatabaseConnection(databaseUrl)
 	if err != nil {
-		fmt.Printf(err)
+		fmt.Printf("Unable to Establish Connection with the Database: %w", err)
 	}
 	
 	// Create a Gin Router with Default Middleware (Logger and Recovery)

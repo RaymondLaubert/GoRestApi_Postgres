@@ -5,14 +5,14 @@ import (
 )
 
 type User struct {
-	id int64
-	username string
-	password string
+	Id int64
+	Username string
+	Password string
 }
 
 type TodoList struct {
-	title string
-	description string
-	due time.Time
-	completed time.Time
+	Title string
+	Description string
+	Due time.Time
+	Completed time.Time
 }
