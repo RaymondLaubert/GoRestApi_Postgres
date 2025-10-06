@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"net/http"
 
 	"github.com/RaymondLaubert/GoRestApi_Postgres/pkg/database"
+	"github.com/RaymondLaubert/GoRestApi_Postgres/pkg/models"
+	"github.com/RaymondLaubert/GoRestApi_Postgres/pkg/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -21,6 +24,12 @@ func main() {
 		fmt.Printf("Unable to Establish Connection with the Database: %w", err)
 	}
 	
+	// Create the Database Tables
+	err = dbConn.CreateDatabaseTables()
+	if err != nil {
+		os.Exit(3)
+	}
+
 	// Create a Gin Router with Default Middleware (Logger and Recovery)
 	router := gin.Default()
 

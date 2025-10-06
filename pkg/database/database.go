@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/RaymondLaubert/GoRestApiPostgres/pkg/models"
+	"github.com/RaymondLaubert/GoRestApi_Postgres/pkg/models"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -23,6 +23,54 @@ func EstablishDatabaseConnection(connString string) (Database, error) {
 
 	return Database {conn: dbConn}, nil
 	
+}
+
+func (db *Database) CreateDatabaseTables() (error) {
+
+	// Start the Transaction
+	transaction, err := db.conn.Begin(context.Background())
+	if err != nil {
+		return fmt.Errorf("Unable to Begin Transaction (CreateDatabaseTables): %w", err)
+	}
+
+	// Ensure the Transaction will be Rolled Back if not Committed
+	defer transaction.Rollback(context.Background())
+	
+	// Create the Query to Create the Users Table
+	usersQuery := `CREATE TABLE users (
+		id SERIAL PRIMARY KEY,
+		username VARCHAR(50) NOT NULL,
+		password VARCHAR(100) NOT NULL
+	);`
+
+	// Create the Query to Create the ToDo List Table
+	todoListQuery := `CREATE TABLE todo (
+		id SERIAL PRIMARY KEY,
+		title VARCHAR(100) NOT NULL,
+		description VARCHAR(255),
+		due TIMESTAMP,
+		completed BOOLEAN
+	);`
+
+	// Execute the Create Users Table Query
+	_, err = transaction.Exec(context.Background(), usersQuery)
+	if err != nil {
+		return fmt.Errorf("Unable to Create the Users Table: %w", err)
+	}
+
+	// Execute the Create ToDo List Table Query
+	_, err = transaction.Exec(context.Background(), todoListQuery)
+	if err != nil {
+		return fmt.Errorf("Unable to Create the ToDo List Table: %w", err)
+	}
+
+	// Commit the Transaction
+	if err = transaction.Commit(context.Background()); err != nil {
+		return fmt.Errorf("Error Committing Transaction (CreateDatabaseTables): %w", err)
+	}
+
+	return nil
+
 }
 
 // Function to Get a User from the Database
@@ -70,7 +118,7 @@ func (db *Database) CreateUser(user models.User) (error) {
 	// Start the Transaction by Calling Begin
 	transaction, err := db.conn.Begin(context.Background())
 	if err != nil {
-		return fmt.Errorf("Unable to Begin Transaction: %w", err)
+		return fmt.Errorf("Unable to Begin Transaction (CreateUser): %w", err)
 	}
 
 	// Create the Query
@@ -93,7 +141,37 @@ func (db *Database) CreateUser(user models.User) (error) {
 
 	// Commit the Transaction
 	if err = transaction.Commit(context.Background()); err != nil {
-		return fmt.Errorf("Error Committing Transaction: %w", err)
+		return fmt.Errorf("Error Committing Transaction (CreateUser): %w", err)
+	}
+
+	return nil
+
+}
+
+// Function to Delete a User from the Database
+func (db *Database) DeleteUser(user models.User) (error) {
+	
+	// Start the Transaction by Calling Begin
+	transaction, err := db.conn.Begin(context.Background())
+	if err != nil {
+		return fmt.Errorf("Unable to Begin Transaction (DeleteUser): %w", err)
+	}
+
+	// Ensure the Transaction will be Rolled Back if not Committed
+	defer transaction.Rollback(context.Background())
+	
+	// Create the Delete Statement
+	query := `DELETE FROM users WHERE id = $1`
+
+	// Execute the Deletion of the User
+	_, err = transaction.Exec(context.Background(), query, user.Id)
+	if err != nil {
+		return fmt.Errorf("Unable to Delete User: %w", err)
+	}
+
+	// Commit the Transaction
+	if err = transaction.Commit(context.Background()); err != nil {
+		return fmt.Errorf("Error Committing Transaction (DeleteUser): %w", err)
 	}
 
 	return nil
@@ -104,7 +182,7 @@ func (db *Database) CreateUser(user models.User) (error) {
 func (db *Database) GetTodoList(userId int64) ([]models.TodoList, error) {
 
 	// Create the Query
-	query := `SELECT * FROM todo WHERE id=$1`
+	query := `SELECT * FROM todo WHERE id = $1`
 
 	// Query the Database for the User's ToDo List
 	rows, err := db.conn.Query(context.Background(), query, userId)
