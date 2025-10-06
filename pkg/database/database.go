@@ -148,6 +148,13 @@ func (db *Database) CreateUser(user models.User) (error) {
 
 }
 
+// Function to Update a User
+func (db *Database) UpdateUser(user models.User) (error) {
+
+	return nil
+
+}
+
 // Function to Delete a User from the Database
 func (db *Database) DeleteUser(user models.User) (error) {
 	
