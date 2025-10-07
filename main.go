@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/RaymondLaubert/GoRestApi_Postgres/pkg/database"
@@ -35,21 +34,13 @@ func main() {
 	router := gin.Default()
 
 	// Add All Authentication Routes
-	auth.Routes(router)
+	auth.Routes()
 
 	// Add All User Routes
-	users.Routes(router)
+	users.Routes()
 
 	// Add All ToDo Routes
-	todo.Routes(router)
-
-	// Define a Simple GET Endpoint
-	router.GET("/ping", func(context *gin.Context) {
-		// Return JSON Response
-		context.JSON(http.StatusOK, gin.H {
-			"message": "pong",
-		})
-	})
+	todo.Routes()
 
 	// Start Server on Port 8080 (Default)
 	router.Run()

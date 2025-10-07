@@ -5,11 +5,13 @@ import (
 	"fmt"
 
 	"github.com/RaymondLaubert/GoRestApi_Postgres/pkg/models"
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/jackc/pgx/v5"
 )
 
 type Database struct {
-	conn *pgx.Conn
+	Conn *pgx.Conn
 }
 
 // Function to Establish a Connection to the Database
@@ -21,14 +23,14 @@ func EstablishDatabaseConnection(connString string) (Database, error) {
 		return Database{}, errorMessage
 	}
 
-	return Database {conn: dbConn}, nil
+	return Database {Conn: dbConn}, nil
 	
 }
 
 func (db *Database) CreateDatabaseTables() (error) {
 
 	// Start the Transaction
-	transaction, err := db.conn.Begin(context.Background())
+	transaction, err := db.Conn.Begin(context.Background())
 	if err != nil {
 		return fmt.Errorf("Unable to Begin Transaction (CreateDatabaseTables): %w", err)
 	}
@@ -73,6 +75,23 @@ func (db *Database) CreateDatabaseTables() (error) {
 
 }
 
+// Function to Help Authenticate a User
+func (db *Database) AuthenticateUser(username string) (models.User, error) {
+
+	// Create the User to Return
+	user := models.User{}
+
+	// Query the Database for the User
+	err := db.Conn.QueryRow(context.Background(), "SELECT * FROM users WHERE username=$1", username).Scan(&user.Id, &user.Username, &user.Password)
+	if err != nil {
+		return models.User{}, fmt.Errorf("User Not Found: %w", err)
+	}
+
+	// Return the Found User
+	return user, nil
+
+}
+
 // Function to Get a User from the Database
 func (db *Database) GetUser(id int64) (models.User, error) {
 	
@@ -80,11 +99,12 @@ func (db *Database) GetUser(id int64) (models.User, error) {
 	user := models.User{}
 
 	// Query the Database for the User and Scan the Row Received for the User ID, Username, and Password
-	err := db.conn.QueryRow(context.Background(), "SELECT * FROM users WHERE id=$1", id).Scan(&user.Id, &user.Username, &user.Password)
+	err := db.Conn.QueryRow(context.Background(), "SELECT * FROM users WHERE id=$1", id).Scan(&user.Id, &user.Username, &user.Password)
 	if err != nil {
 		return models.User{}, fmt.Errorf("Unable to Find User: %w", err)
 	}
 
+	// Return the Found User
 	return user, nil
 
 }
@@ -93,7 +113,7 @@ func (db *Database) GetUser(id int64) (models.User, error) {
 func (db *Database) GetAllUsers() ([]models.User, error) {
 	
 	// Query the Database for All Users
-	rows, err := db.conn.Query(context.Background(), "SELECT * FROM users")
+	rows, err := db.Conn.Query(context.Background(), "SELECT * FROM users")
 	if err != nil {
 		return nil, fmt.Errorf("Unable to Query Users: %w", err)
 	}
@@ -116,18 +136,31 @@ func (db *Database) GetAllUsers() ([]models.User, error) {
 func (db *Database) CreateUser(user models.User) (error) {
 
 	// Start the Transaction by Calling Begin
-	transaction, err := db.conn.Begin(context.Background())
+	transaction, err := db.Conn.Begin(context.Background())
 	if err != nil {
 		return fmt.Errorf("Unable to Begin Transaction (CreateUser): %w", err)
+	}
+
+	// Ensure the Username doesn't Exist Already
+	existingUser := models.User{}
+	err = db.Conn.QueryRow(context.Background(), "SELECT * FROM users WHERE username=$1", user.Username).Scan(&existingUser.Id, &existingUser.Username, &existingUser.Password)
+	if err == nil {
+		return fmt.Errorf("Username Already Exists.")
 	}
 
 	// Create the Query
 	query := `INSERT INTO users (username, password) VALUES (@userName, @userPassword)`
 
+	// Create the Password Hash
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("Unable to Hash Password: %w", err)
+	}
+
 	// Create the Named Arguments
 	args := pgx.NamedArgs{
 		"userName": user.Username,
-		"userPassword": user.Password,
+		"userPassword": string(passwordHash),
 	}
 
 	// Ensure the Transaction will be Rolled Back if not Committed
@@ -159,7 +192,7 @@ func (db *Database) UpdateUser(user models.User) (error) {
 func (db *Database) DeleteUser(user models.User) (error) {
 	
 	// Start the Transaction by Calling Begin
-	transaction, err := db.conn.Begin(context.Background())
+	transaction, err := db.Conn.Begin(context.Background())
 	if err != nil {
 		return fmt.Errorf("Unable to Begin Transaction (DeleteUser): %w", err)
 	}
@@ -192,7 +225,7 @@ func (db *Database) GetTodoList(userId int64) ([]models.TodoList, error) {
 	query := `SELECT * FROM todo WHERE id = $1`
 
 	// Query the Database for the User's ToDo List
-	rows, err := db.conn.Query(context.Background(), query, userId)
+	rows, err := db.Conn.Query(context.Background(), query, userId)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to Query ToDo List: %w", err)
 	}

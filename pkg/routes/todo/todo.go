@@ -1,17 +1,26 @@
 package todo
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/RaymondLaubert/GoRestApi_Postgres/pkg/database"
 
-func Routes(route *gin.Engine) {
+	"github.com/gin-gonic/gin"
+)
+
+type TodoRoutes struct {
+	router *gin.Engine
+	db *database.Database
+}
+
+func (tr *TodoRoutes) Routes() {
 	
-	todo := route.Group("/todo")
+	todo := tr.router.Group("/todo")
 	{
-		todo.GET("/todoList", GetTodoList)
+		todo.GET("/todoList", tr.getTodoList)
 	}
 
 }
 
 // Function to Get the ToDo List
-func GetTodoList(context *gin.Context) {
+func (tr *TodoRoutes) getTodoList(context *gin.Context) {
 
 }
