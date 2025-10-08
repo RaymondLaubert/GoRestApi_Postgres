@@ -184,6 +184,36 @@ func (db *Database) CreateUser(user models.User) (error) {
 // Function to Update a User
 func (db *Database) UpdateUser(user models.User) (error) {
 
+	// Start the Transaction by Calling Begin
+	transaction, err := db.Conn.Begin(context.Background())
+	if err != nil {
+		return fmt.Errorf("Unable to Begin Transaction (UpdateUser): %w", err)
+	}
+
+	// Ensure the Transaction will be Rolled Back in not Committed
+	defer transaction.Rollback(context.Background())
+	
+	// Create the Query
+	query := `UPDATE users SET username = @userName, password = @userPassword WHERE id = @userId`
+
+	// Create the Named Arguments
+	args := pgx.NamedArgs {
+		"userName": user.Username,
+		"userPassword": user.Password,
+		"userId": user.Id,
+	}
+
+	// Execute the User Update
+	_, err = transaction.Exec(context.Background(), query, args)
+	if err != nil {
+		return fmt.Errorf("Unable to Update User: %w", err)
+	}
+
+	// Commit the Transaction
+	if err = transaction.Commit(context.Background()); err != nil {
+		return fmt.Errorf("Error Committing the Transaction (UpdateUser): %w", err)
+	}
+	
 	return nil
 
 }

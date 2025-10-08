@@ -6,14 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type TodoRoutes struct {
-	router *gin.Engine
-	db *database.Database
+type TodoRouter struct {
+	Router *gin.Engine
+	Db *database.Database
 }
 
-func (tr *TodoRoutes) Routes() {
+func (tr *TodoRouter) Routes() {
 	
-	todo := tr.router.Group("/todo")
+	todo := tr.Router.Group("/todo")
 	{
 		todo.GET("/todoList", tr.getTodoList)
 	}
@@ -21,6 +21,6 @@ func (tr *TodoRoutes) Routes() {
 }
 
 // Function to Get the ToDo List
-func (tr *TodoRoutes) getTodoList(context *gin.Context) {
+func (tr *TodoRouter) getTodoList(context *gin.Context) {
 
 }

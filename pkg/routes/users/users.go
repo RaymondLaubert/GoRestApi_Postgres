@@ -11,16 +11,16 @@ import (
 )
 
 type UserRouter struct {
-	router *gin.Engine
-	db *database.Database
+	Router *gin.Engine
+	Db *database.Database
 }
 
 // Function Adds All the User Routes to the Router
 func (ur *UserRouter) Routes() {
 
-	users := ur.router.Group("/users")
+	users := ur.Router.Group("/users")
 	{
-		users.GET("/user/:id", ur.getUser)
+		users.GET("/user", ur.getUser)
 		users.GET("/allUsers", ur.getAllUsers)
 		users.POST("/createUser", ur.createUser)
 		users.PUT("/updateUser", ur.updateUser)
@@ -40,7 +40,7 @@ func (ur *UserRouter) getUser(context *gin.Context) {
 	}
 
 	// Obtain the User
-	user, err := ur.db.GetUser(userId)
+	user, err := ur.Db.GetUser(userId)
 	if err != nil {
 		context.String(http.StatusNotFound, "User Not Found: %w", err)
 		return
@@ -57,7 +57,7 @@ func (ur *UserRouter) getUser(context *gin.Context) {
 func (ur *UserRouter) getAllUsers(context *gin.Context) {
 
 	// Obtain the Users
-	users, err := ur.db.GetAllUsers()
+	users, err := ur.Db.GetAllUsers()
 	if err != nil {
 		context.String(http.StatusNotFound, "%w", err)
 		return
@@ -91,11 +91,41 @@ func (ur *UserRouter) createUser(context *gin.Context) {
 // Function to Update a User
 func (ur *UserRouter) updateUser(context *gin.Context) {
 
+	// Obtain the New Username and/or Password
+	
+
+	// Create the User via the User Model
+	user := models.User {
+		Id: 1,
+		Username: "",
+		Password: "",
+	}
+
+	// Return a JSON Response with the User
+	context.JSON(http.StatusOK, gin.H {
+		"message": user,
+	})
+
 }
 
 // Function to Delete a User
 func (ur *UserRouter) deleteUser(context *gin.Context) {
 
-	// Create the User via
+	// Obtain the User via Binding
+	user := models.User{}
+
+	// Attempt to Delete the User
+	err := ur.Db.DeleteUser(user)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H {
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// Return a Successful Response
+	context.JSON(http.StatusOK, gin.H {
+		"message": "Successfully Deleted User.",
+	})
 
 }

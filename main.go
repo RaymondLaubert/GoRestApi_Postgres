@@ -34,13 +34,16 @@ func main() {
 	router := gin.Default()
 
 	// Add All Authentication Routes
-	auth.Routes()
+	authRouter := auth.AuthRouter {Router: router, Db: &dbConn}
+	authRouter.Routes()
 
 	// Add All User Routes
-	users.Routes()
+	userRouter := users.UserRouter {Router: router, Db: &dbConn}
+	userRouter.Routes()
 
 	// Add All ToDo Routes
-	todo.Routes()
+	todoRouter := todo.TodoRouter {Router: router, Db: &dbConn}
+	todoRouter.Routes()
 
 	// Start Server on Port 8080 (Default)
 	router.Run()

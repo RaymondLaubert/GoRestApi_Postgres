@@ -14,14 +14,14 @@ type LoginDetails struct {
 	Password 	string	`json:"password" binding:"required"`
 }
 
-type AuthRoutes struct {
-	router *gin.Engine
-	db *database.Database
+type AuthRouter struct {
+	Router *gin.Engine
+	Db *database.Database
 }
 
-func (ar *AuthRoutes) Routes() {
+func (ar *AuthRouter) Routes() {
 	
-	auth := ar.router.Group("/auth") 
+	auth := ar.Router.Group("/auth") 
 	{
 		auth.POST("/login", ar.login)
 	}
@@ -29,7 +29,7 @@ func (ar *AuthRoutes) Routes() {
 }
 
 // Function to Authenticate a User and Login
-func (ar *AuthRoutes) login(context *gin.Context) {
+func (ar *AuthRouter) login(context *gin.Context) {
 
 	var details LoginDetails
 
@@ -42,7 +42,7 @@ func (ar *AuthRoutes) login(context *gin.Context) {
 	}
 
 	// Attempt to Authenticate the User with Login Credentials
-	userFound, err := ar.db.AuthenticateUser(details.Username)
+	userFound, err := ar.Db.AuthenticateUser(details.Username)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H {
 			"error": "User Not Found.",
@@ -61,5 +61,12 @@ func (ar *AuthRoutes) login(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H {
 		"status": "Login Authorized",
 	})
+
+}
+
+// Function to Check the Authentication of a User
+func (ar *AuthRouter) CheckAuth(context *gin.Context) {
+
+
 
 }
