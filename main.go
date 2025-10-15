@@ -20,13 +20,14 @@ func main() {
 	// Attempt to Establish a Connection with the PostgresDB
 	dbConn, err := database.EstablishDatabaseConnection(databaseUrl)
 	if err != nil {
-		fmt.Printf("Unable to Establish Connection with the Database: %s", err)
+		fmt.Printf("Unable to Establish Connection with the Database: %s", err.Error())
 		os.Exit(1)
 	}
 	
 	// Create the Database Tables
 	err = dbConn.CreateDatabaseTables()
 	if err != nil {
+		fmt.Printf("Unable to Create Database Tables: %s", err.Error())
 		os.Exit(2)
 	}
 
